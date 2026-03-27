@@ -1,0 +1,56 @@
+# ── Python ─────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyc.*
+*.py,cover
+
+# ── Virtual Environment ───────────────
+venv/
+env/
+ENV/
+
+# ── Environment Variables ─────────────
+.env
+.env.*
+
+# ── Logs ─────────────────────────────
+*.log
+
+# ── Cache / Temp ─────────────────────
+.cache/
+*.tmp
+*.temp
+
+# ── OS Files ─────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── VS Code ──────────────────────────
+.vscode/
+
+# ── Node (if used later) ─────────────
+node_modules/
+
+# ── Build / Dist ─────────────────────
+build/
+dist/
+
+# ── Jupyter / misc ───────────────────
+.ipynb_checkpoints/
+
+# ── FAISS / vector DB (optional)
+*.faiss
+*.pkl
+
+# ── Python packaging ─────────────────
+*.egg-info/
+.eggs/
+
+# ── Coverage reports ─────────────────
+.coverage
+htmlcov/
+
+# ── Mac / Linux hidden files ─────────
+*.swp
