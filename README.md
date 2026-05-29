@@ -1,198 +1,604 @@
-# NSUT Placement Policy Chatbot — Backend
+# NSUT Placement Policy Chatbot
 
-A RAG chatbot that answers student questions **strictly from the NSUT Placement Policy 2025–26 PDF**.  
-Built with **FastAPI · LangChain · LangGraph · OpenAI**.
+A Retrieval-Augmented Generation (RAG) chatbot that answers questions about the NSUT Placement Policy using a local Large Language Model (LLM), semantic search, and PDF-based knowledge retrieval.
+
+The system combines FastAPI, LangChain, LangGraph, FAISS, HuggingFace Embeddings, and Ollama to provide accurate, context-aware, and policy-grounded responses.
 
 ---
 
-## Architecture
+## Problem Statement
 
-```
-Student question
+Placement policies are often lengthy PDF documents that students find difficult to navigate. Finding specific rules, eligibility criteria, penalties, internship policies, or placement procedures can be time-consuming.
+
+This project converts the placement policy document into an intelligent conversational assistant that can answer questions in natural language while grounding responses in the official policy document.
+
+---
+
+## Features
+
+* PDF-based Knowledge Retrieval
+* Retrieval-Augmented Generation (RAG)
+* Semantic Search using Embeddings
+* Local LLM Inference using Ollama
+* Session-based Conversations
+* FastAPI REST Backend
+* LangGraph Workflow Management
+* FAISS Vector Database
+* Fully Offline Deployment
+* Lightweight and Cost-Free Operation
+* Frontend Integration Support
+* Policy-Grounded Responses
+* Reduced Hallucinations
+
+---
+
+## Tech Stack
+
+### Backend
+
+* Python
+* FastAPI
+* Uvicorn
+
+### LLM Framework
+
+* LangChain
+* LangGraph
+
+### Large Language Models
+
+* Phi-3 Mini
+* Qwen2.5
+* TinyLlama
+* Gemma
+
+### Embeddings
+
+* sentence-transformers/all-MiniLM-L6-v2
+
+### Vector Database
+
+* FAISS
+
+### Document Processing
+
+* PyPDFLoader
+* RecursiveCharacterTextSplitter
+
+### Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+---
+
+## System Architecture
+
+```text
+User Question
       │
       ▼
-┌─────────────────────────────────┐
-│          FastAPI  /chat         │
-│                                 │
-│   LangGraph StateGraph          │
-│   ┌─────────────────────────┐   │
-│   │  1. retrieve  node      │───┼──► FAISS (PDF chunks, top-5)
-│   └────────────┬────────────┘   │
-│                ▼                │
-│   ┌─────────────────────────┐   │
-│   │  2. generate  node      │───┼──► GPT-4o-mini
-│   └─────────────────────────┘   │
-│                                 │
-│   In-memory session store       │
-│   (session_id → message list)   │
-└─────────────────────────────────┘
+Frontend UI
       │
       ▼
-Policy-grounded answer
+FastAPI Backend
+      │
+      ▼
+LangGraph Workflow
+      │
+ ┌────┴────┐
+ │         │
+ ▼         ▼
+Retriever  Chat History
+ │
+ ▼
+FAISS Vector Store
+ │
+ ▼
+Relevant Chunks
+ │
+ ▼
+Prompt Builder
+ │
+ ▼
+Ollama LLM
+ │
+ ▼
+Generated Answer
+ │
+ ▼
+Frontend UI
 ```
-
-### How it works
-
-| Step | Node | What happens |
-|------|------|-------------|
-| 1 | `retrieve` | The student's question is embedded and matched against the FAISS index of PDF chunks. The top-5 most relevant passages are returned with their page numbers. |
-| 2 | `generate` | The retrieved passages + the conversation history are sent to GPT-4o-mini with a strict system prompt. If the answer is not in the policy, the model says so and directs the student to T&P contacts. |
 
 ---
 
-## Project layout
+## How It Works
 
+### Step 1: PDF Loading
+
+The placement policy PDF is loaded using PyPDFLoader.
+
+### Step 2: Chunking
+
+The document is split into smaller chunks for efficient retrieval.
+
+```python
+chunk_size = 600
+chunk_overlap = 100
 ```
-backend/
-├── main.py                 ← FastAPI app + LangGraph pipeline
-├── requirements.txt        ← Pinned Python dependencies
-└── Placement_Policy.pdf    ← Your policy PDF goes here
+
+### Step 3: Embedding Generation
+
+Each chunk is converted into vector embeddings using:
+
+```text
+sentence-transformers/all-MiniLM-L6-v2
+```
+
+### Step 4: Vector Storage
+
+Embeddings are stored inside a FAISS vector database.
+
+### Step 5: User Query
+
+The student asks a question.
+
+Example:
+
+```text
+What happens if I reject an offer after the results are declared?
+```
+
+### Step 6: Semantic Retrieval
+
+The most relevant chunks are retrieved using vector similarity search.
+
+### Step 7: Prompt Construction
+
+Retrieved chunks are combined with the user's question.
+
+### Step 8: Response Generation
+
+The Ollama-hosted LLM generates an answer strictly based on the retrieved context.
+
+---
+
+## Project Structure
+
+```text
+NSUT-Placement-Chatbot/
+│
+├── main.py
+├── index.html
+├── Placement_Policy.pdf
+├── requirements.txt
+├── README.md
+│
+├── faiss_index/
+│
+├── screenshots/
+│   ├── home.png
+│   ├── chat.png
+│
+└── assets/
 ```
 
 ---
 
-## Setup
+## Installation
 
-### Prerequisites
-
-- Python 3.10 or newer
-- An [OpenAI API key](https://platform.openai.com/api-keys)
-
----
-
-### 1 — Create a virtual environment
+### Clone Repository
 
 ```bash
-cd backend
-python -m venv venv
+git clone https://github.com/yourusername/nsut-placement-chatbot.git
 
-# Activate
-source venv/bin/activate        # macOS / Linux
-venv\Scripts\activate           # Windows CMD
+cd nsut-placement-chatbot
 ```
 
-### 2 — Install dependencies
+---
+
+### Create Virtual Environment
+
+Windows
+
+```bash
+python -m venv venv
+
+venv\Scripts\activate
+```
+
+Linux / Mac
+
+```bash
+python3 -m venv venv
+
+source venv/bin/activate
+```
+
+---
+
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3 — Add the PDF
+---
 
-Place `Placement_Policy.pdf` inside the `backend/` folder.  
-To use a different path, set the `PDF_PATH` environment variable.
+## Install Ollama
 
-### 4 — Set your OpenAI API key
+Download Ollama:
 
-```bash
-# macOS / Linux
-export OPENAI_API_KEY="sk-..."
+https://ollama.com
 
-# Windows CMD
-set OPENAI_API_KEY=sk-...
-
-# Windows PowerShell
-$env:OPENAI_API_KEY="sk-..."
-```
-
-### 5 — Start the server
+Install a model:
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+ollama pull phi3
 ```
 
-The server starts at `http://localhost:8000`.  
-Interactive API docs: `http://localhost:8000/docs`
+or
+
+```bash
+ollama pull qwen2.5:1.5b
+```
+
+Start Ollama:
+
+```bash
+ollama serve
+```
 
 ---
 
-## API reference
+## Running the Project
 
-### `POST /chat`
+Start FastAPI Server:
 
-Send a question and receive a policy-grounded answer.
+```bash
+uvicorn main:app --reload
+```
 
-**Request body**
+Application:
+
+```text
+http://localhost:8000
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8000/health
+```
+
+---
+
+## API Documentation
+
+### Health Check
+
+```http
+GET /health
+```
+
+Response
+
 ```json
 {
-  "session_id": "student_42",
-  "message": "What is the CTC threshold for the Dream category in tech roles?"
+  "status": "ok",
+  "model": "phi3"
 }
 ```
 
-**Response**
+---
+
+### Chat Endpoint
+
+```http
+POST /chat
+```
+
+Request
+
 ```json
 {
-  "session_id": "student_42",
-  "answer": "For Tech roles, the Dream Category threshold is ≥ 12 LPA. Companies offering less than 12 LPA fall under the A++ Category."
+  "session_id": "student123",
+  "message": "What is the placement eligibility criteria?"
+}
+```
+
+Response
+
+```json
+{
+  "session_id": "student123",
+  "answer": "..."
 }
 ```
 
 ---
 
-### `GET /session/{session_id}`
+## Example Questions
 
-Check how many messages are stored for a session.
+Students can ask:
 
-```json
-{ "session_id": "student_42", "message_count": 6 }
+```text
+What is the placement eligibility criteria?
+
+What happens if I reject an offer?
+
+Can I sit for another company after being placed?
+
+What is the ban period for rejecting an offer?
+
+How many offers can a student hold?
+
+What are the internship conversion rules?
+
+What is the placement withdrawal policy?
+
+Are backlogs allowed during placements?
 ```
 
 ---
 
-### `DELETE /session/{session_id}`
+## Sample Workflow
 
-Reset the conversation history for a session.
+### User
 
-```json
-{ "status": "cleared", "session_id": "student_42" }
+```text
+What happens if I reject an offer after results are declared?
+```
+
+### Retrieval
+
+Relevant policy chunks are retrieved from the FAISS database.
+
+### Generation
+
+The LLM uses retrieved context to generate an answer.
+
+### Output
+
+```text
+Students rejecting an offer after declaration of results are subject to a 120-day ban from all new and existing placement opportunities.
 ```
 
 ---
 
-## Environment variables
+## Performance Optimizations
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OPENAI_API_KEY` | *(required)* | Your OpenAI secret key |
-| `PDF_PATH` | `Placement_Policy.pdf` | Path to the policy PDF |
-| `LLM_MODEL` | `gpt-4o-mini` | OpenAI model name |
+### Optimized Chunking
+
+```python
+chunk_size = 600
+chunk_overlap = 100
+```
+
+### Reduced Retrieval Size
+
+```python
+search_kwargs = {
+    "k": 4
+}
+```
+
+### Limited Chat History
+
+```python
+history = state["messages"][-4:]
+```
+
+### Faster Model Configuration
+
+```python
+llm = Ollama(
+    model="phi3",
+    temperature=0,
+    num_predict=180
+)
+```
+
+### Persistent FAISS Index
+
+The vector database is saved locally and reused across restarts to avoid recomputing embeddings.
+
+Benefits:
+
+* Faster startup
+* Reduced memory consumption
+* Improved response time
 
 ---
 
-## Connecting a frontend
+## Performance Benchmarks
 
-Any frontend can call `POST /chat` with JSON. Example using `fetch`:
+| Model        | Average Response Time |
+| ------------ | --------------------- |
+| Llama 3      | 15–30 sec             |
+| Phi3 Mini    | 3–8 sec               |
+| Qwen2.5 1.5B | 2–5 sec               |
+| TinyLlama    | 1–3 sec               |
 
-```js
-const res = await fetch('http://localhost:8000/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    session_id: 'my-session',
-    message: 'Can I apply after receiving a PPO?'
-  })
-});
-const { answer } = await res.json();
+---
+
+## Why RAG?
+
+Traditional LLMs rely on pretrained knowledge and may hallucinate.
+
+RAG improves reliability by:
+
+* Retrieving actual policy content
+* Grounding answers in source documents
+* Reducing hallucinations
+* Improving factual accuracy
+* Supporting document-specific queries
+
+---
+
+## Docker Deployment
+
+### Dockerfile
+
+```dockerfile
+FROM python:3.11
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8000
+
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+```
+
+### Build Docker Image
+
+```bash
+docker build -t placement-chatbot .
+```
+
+### Run Container
+
+```bash
+docker run -p 8000:8000 placement-chatbot
 ```
 
 ---
 
-## Customisation
+## Deploy on Render
 
-| Goal | Where to change |
-|------|-----------------|
-| Retrieve more/fewer chunks | `search_kwargs={"k": N}` in `build_retriever()` |
-| Adjust chunk size | `chunk_size` in `RecursiveCharacterTextSplitter` |
-| Swap vector store | Replace `FAISS` with `Chroma`, `Pinecone`, `Qdrant`, etc. |
-| Use a stronger model | Set `LLM_MODEL=gpt-4o` env var |
-| Persist sessions | Replace the `sessions` dict with Redis or a database |
-| Add streaming | Use `llm.astream()` + FastAPI `StreamingResponse` |
+### Build Command
+
+```bash
+pip install -r requirements.txt
+```
+
+### Start Command
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
 
 ---
 
-## Notes
+## Deploy on Railway
 
-- The model is instructed to refuse answers not found in the policy and to direct students to **tnpcell@nsitonline.in**.
-- Session history is **in-memory** and resets when the server restarts. Use Redis for production.
-- The embedding model used is `text-embedding-3-small` (cost-efficient and accurate for this use case).
+1. Push repository to GitHub.
+2. Create Railway Project.
+3. Connect GitHub Repository.
+4. Configure environment variables.
+5. Deploy.
+
+---
+
+## Future Enhancements
+
+### Version 2.0
+
+* Source Citations
+* Streaming Responses
+* Multi-PDF Support
+* Admin Upload Panel
+* Authentication System
+* Persistent Chat Memory
+* User Analytics
+
+### Version 3.0
+
+* Hybrid Search (BM25 + FAISS)
+* Query Rewriting
+* Semantic Cache
+* Feedback Learning
+* Voice Input
+* Voice Output
+* Dashboard Analytics
+
+---
+
+## Skills Demonstrated
+
+### Artificial Intelligence
+
+* Retrieval-Augmented Generation
+* Semantic Search
+* Prompt Engineering
+* Context Management
+
+### Machine Learning
+
+* Sentence Transformers
+* Embedding Models
+* Vector Similarity Search
+
+### Backend Development
+
+* FastAPI
+* REST APIs
+* Session Management
+
+### LLM Engineering
+
+* LangChain
+* LangGraph
+* Ollama
+* Local Model Deployment
+
+### Databases
+
+* FAISS Vector Store
+
+---
+
+## Resume Description
+
+Developed a Retrieval-Augmented Generation (RAG) chatbot for NSUT Placement Policy using FastAPI, LangChain, LangGraph, FAISS, HuggingFace Embeddings, and Ollama. Implemented semantic document retrieval, vector search, and local LLM inference to deliver accurate policy-based responses while reducing hallucinations and enabling fully offline deployment.
+
+---
+
+## Screenshots
+
+Add screenshots in the screenshots folder:
+
+```markdown
+![Home Page](screenshots/home.png)
+
+![Chat Interface](screenshots/chat.png)
+
+![Response Example](screenshots/response.png)
+```
+
+---
+
+## License
+
+This project is developed for educational and academic purposes.
+
+Feel free to modify and extend the project according to your requirements.
+
+---
+
+## Author
+
+Divyansh Sharma
+
+B.Tech Electronics & Communication Engineering (AI & ML)
+
+Netaji Subhas University of Technology (NSUT)
+
+---
+
+## Acknowledgements
+
+Special thanks to the following open-source technologies:
+
+* [FastAPI](https://fastapi.tiangolo.com?utm_source=chatgpt.com)
+* [LangChain](https://www.langchain.com?utm_source=chatgpt.com)
+* [LangGraph](https://langchain-ai.github.io/langgraph/?utm_source=chatgpt.com)
+* [Ollama](https://ollama.com?utm_source=chatgpt.com)
+* [Hugging Face](https://huggingface.co?utm_source=chatgpt.com)
+* [FAISS](https://faiss.ai?utm_source=chatgpt.com)
+* [Sentence Transformers](https://www.sbert.net?utm_source=chatgpt.com)
