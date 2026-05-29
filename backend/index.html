@@ -1,540 +1,1123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NSUT T&P Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>T&P Chat Support</title>
 
-  <style>
-    :root {
-      --navy:    #0a1628;
-      --ink:     #162035;
-      --blue:    #1a56db;
-      --sky:     #3b82f6;
-      --accent:  #ef4444;
-      --gold:    #f59e0b;
-      --cream:   #f8f6f1;
-      --sand:    #e8e3d8;
-      --muted:   #7c8ea6;
-      --white:   #ffffff;
-      --radius:  16px;
-      --shadow-sm: 0 2px 8px rgba(10,22,40,.08);
-      --shadow:  0 8px 32px rgba(10,22,40,.12);
-      --shadow-lg: 0 20px 60px rgba(10,22,40,.18);
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
 
-    html { height: 100%; }
+/* =========================================================
+   THEME VARIABLES
+========================================================= */
 
-    body {
-      height: 100%;
-      font-family: 'Outfit', sans-serif;
-      background: var(--cream);
-      display: flex;
-      flex-direction: column;
-    }
+:root {
 
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 70% 50% at 15% 5%, rgba(59,130,246,.10) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 88% 95%, rgba(245,158,11,.07) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
+  --bg:        #f5f7fb;
+  --card:      #ffffff;
+  --card2:     #f1f5f9;
+  --card3:     #e2e8f0;
 
-    /* ── Header ── */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--navy);
-      padding: 0 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      flex-shrink: 0;
-      box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 4px 24px rgba(0,0,0,.3);
-    }
+  --border:    rgba(15,23,42,.08);
+  --border-hi: rgba(15,23,42,.14);
+  --border-focus: rgba(127,29,29,.28);
 
-    .header-brand { display: flex; align-items: center; gap: 14px; }
+  --text:      #0f172a;
+  --text2:     #334155;
 
-    .brand-badge {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--accent) 0%, #c0392b 100%);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 18px; color: var(--white);
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(239,68,68,.4);
-    }
+  --muted:     #64748b;
+  --muted2:    #94a3b8;
 
-    .brand-text h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px; font-weight: 600;
-      color: var(--white); letter-spacing: .2px;
-    }
+  --green:     #059669;
+  --green-dim: rgba(5,150,105,.12);
 
-    .brand-text p {
-      font-size: 11px; color: var(--muted);
-      font-weight: 300; margin-top: 1px; letter-spacing: .3px;
-    }
+  --red:       #b91c1c;
 
-    .status-pill {
-      display: flex; align-items: center; gap: 7px;
-      padding: 5px 12px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 999px;
-      font-size: 12px; color: var(--muted);
-    }
+  --accent:    #7f1d1d;
 
-    .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 0 3px rgba(34,197,94,.2);
-      animation: pulse 2.5s ease-in-out infinite;
-    }
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow-md: 0 4px 12px rgba(15,23,42,.08);
 
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
-      50%       { box-shadow: 0 0 0 6px rgba(34,197,94,.08); }
-    }
+  --radius:    10px;
+  --radius-sm: 7px;
 
-    /* ── MAIN LAYOUT — The key to scrolling ── */
-    /*
-      The body is a flex column: header (fixed height) + main (fills rest).
-      main is also a flex column: disclaimer + chat-window (grows+scrolls) + input.
-      This means chat-window has a bounded height and can scroll independently.
-    */
+  --tr:        all .16s ease;
+}
 
-    main {
-      position: relative;
-      z-index: 1;
-      flex: 1;           /* takes all remaining height after header */
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;  /* clips children, lets chat-window scroll inside */
-    }
+/* =========================================================
+   DARK MODE
+========================================================= */
 
-    .container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 16px;
-      overflow: hidden;  /* important: contain scrolling within chat-window */
-    }
+@media (prefers-color-scheme: dark){
 
-    /* ── Disclaimer ── */
-    .disclaimer {
-      margin: 18px 0 0;
-      background: rgba(59,130,246,.08);
-      border: 1px solid rgba(59,130,246,.18);
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 12px; color: var(--muted);
-      line-height: 1.6;
-      flex-shrink: 0;
-    }
+:root{
 
-    .disclaimer strong { color: var(--blue); }
+  --bg:        #080808;
+  --card:      #111111;
+  --card2:     #181818;
+  --card3:     #202020;
 
-    /* ── Chat window — SCROLLS HERE ── */
-    #chat-window {
-      flex: 1;           /* grow to fill available space */
-      overflow-y: auto;  /* scroll when content overflows */
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      padding: 20px 2px 10px;
-      scroll-behavior: smooth;
-    }
+  --border:    rgba(255,255,255,.08);
+  --border-hi: rgba(255,255,255,.15);
+  --border-focus: rgba(255,255,255,.35);
 
-    #chat-window::-webkit-scrollbar { width: 5px; }
-    #chat-window::-webkit-scrollbar-track { background: transparent; }
-    #chat-window::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 4px; }
-    #chat-window::-webkit-scrollbar-thumb:hover { background: #c8c0b4; }
+  --text:      #ffffff;
+  --text2:     #e0e0e0;
 
-    /* ── Empty state ── */
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 24px;
-      padding: 20px;
-      animation: fadeUp .6s ease both;
-    }
+  --muted:     #666666;
+  --muted2:    #444444;
 
-    .empty-icon {
-      width: 76px; height: 76px;
-      background: var(--navy);
-      border-radius: 22px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 30px;
-      box-shadow: var(--shadow-lg);
-    }
+  --green:     #00d4aa;
+  --green-dim: rgba(0,212,170,.12);
 
-    .empty-state h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px; font-weight: 400;
-      color: var(--ink); line-height: 1.35;
-    }
+  --red:       #c0392b;
 
-    .empty-state h2 em { font-style: italic; color: var(--blue); }
+  --accent:    #ffffff;
 
-    .empty-state p {
-      font-size: 14px; color: var(--muted);
-      max-width: 340px; line-height: 1.75;
-    }
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 10px 24px rgba(0,0,0,.4);
+}
+}
 
-    .suggestions {
-      display: flex; flex-wrap: wrap;
-      gap: 9px; justify-content: center;
-      max-width: 540px;
-    }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-    .suggestion-chip {
-      padding: 8px 15px;
-      background: var(--white);
-      border: 1.5px solid var(--sand);
-      border-radius: 999px;
-      font-size: 12.5px; color: var(--ink);
-      cursor: pointer;
-      transition: all .2s ease;
-      font-family: 'Outfit', sans-serif;
-    }
+html,body{
+  height:100%;
+  overflow:hidden;
+}
 
-    .suggestion-chip:hover {
-      background: var(--navy);
-      color: var(--white);
-      border-color: var(--navy);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(10,22,40,.2);
-    }
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  transition:var(--tr);
+}
 
-    /* ── Messages ── */
-    .message-row {
-      display: flex; gap: 11px;
-      animation: fadeUp .3s ease both;
-      flex-shrink: 0;
-    }
+/* =========================================================
+   HEADER
+========================================================= */
 
-    .message-row.user { flex-direction: row-reverse; }
+.page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:22px 28px 18px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background:var(--bg);
+}
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+.page-title{
+  font-size:24px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.03em;
+}
 
-    .avatar {
-      width: 34px; height: 34px;
-      border-radius: 10px;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      margin-top: 2px;
-    }
+.page-sub{
+  font-size:12.5px;
+  color:var(--muted);
+  margin-top:4px;
+  font-weight:400;
+}
 
-    .avatar.bot { background: var(--navy); box-shadow: var(--shadow-sm); }
-    .avatar.user {
-      background: linear-gradient(135deg, var(--accent), #c0392b);
-      box-shadow: 0 4px 12px rgba(239,68,68,.3);
-    }
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 14px;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--border-hi);
+  background:var(--card);
+  box-shadow:var(--shadow-sm);
+  font-size:11.5px;
+  font-weight:500;
+  color:var(--text2);
+}
 
-    .bubble {
-      max-width: 74%;
-      padding: 12px 17px;
-      border-radius: var(--radius);
-      line-height: 1.7;
-      font-size: 14px;
-    }
+.s-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 3px var(--green-dim);
+  animation:pulse 2.4s ease-in-out infinite;
+}
 
-    .bubble.bot {
-      background: var(--white);
-      color: var(--ink);
-      border: 1px solid rgba(0,0,0,.07);
-      box-shadow: var(--shadow-sm);
-      border-top-left-radius: 4px;
-    }
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:.3}
+}
 
-    .bubble.user {
-      background: var(--navy);
-      color: var(--white);
-      border-top-right-radius: 4px;
-    }
+/* =========================================================
+   LAYOUT
+========================================================= */
 
-    .bubble ul, .bubble ol { padding-left: 18px; margin-top: 6px; }
-    .bubble li { margin-bottom: 5px; }
-    .bubble strong { font-weight: 600; }
+.layout{
+  flex:1;
+  display:flex;
+  overflow:hidden;
+}
 
-    /* ── Typing indicator ── */
-    .typing-dots { display: flex; align-items: center; gap: 5px; padding: 4px 2px; }
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-    .typing-dots span {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--muted);
-      animation: bounce 1.3s ease-in-out infinite;
-    }
+.sidebar{
+  width:230px;
+  flex-shrink:0;
+  background:var(--card);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 
-    .typing-dots span:nth-child(2) { animation-delay: .18s; }
-    .typing-dots span:nth-child(3) { animation-delay: .36s; }
+.sidebar-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px 14px 11px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
 
-    @keyframes bounce {
-      0%, 80%, 100% { transform: translateY(0); opacity: .5; }
-      40%           { transform: translateY(-8px); opacity: 1; }
-    }
+.sidebar-label{
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
 
-    /* ── Input area ── */
-    .input-wrapper {
-      padding: 12px 0 16px;
-      flex-shrink: 0;
-    }
+.new-btn{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 11px;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--border-hi);
+  background:transparent;
+  color:var(--text2);
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  transition:var(--tr);
+}
 
-    .input-area {
-      background: var(--white);
-      border: 1.5px solid var(--sand);
-      border-radius: 20px;
-      padding: 10px 10px 10px 18px;
-      display: flex; align-items: flex-end; gap: 10px;
-      box-shadow: var(--shadow);
-      transition: border-color .2s, box-shadow .2s;
-    }
+.new-btn:hover{
+  background:var(--card2);
+  border-color:var(--border-focus);
+  color:var(--text);
+  transform:translateY(-1px);
+}
 
-    .input-area:focus-within {
-      border-color: var(--sky);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.12), var(--shadow);
-    }
+.sess-list{
+  flex:1;
+  overflow-y:auto;
+  padding:6px 0;
+}
 
-    #user-input {
-      flex: 1; border: none; outline: none;
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px; color: var(--ink);
-      background: transparent;
-      resize: none; max-height: 120px;
-      line-height: 1.55; padding: 5px 0;
-    }
+.sess-group-label{
+  padding:10px 14px 3px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--muted2);
+}
 
-    #user-input::placeholder { color: var(--muted); }
+.sess-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  margin:1px 6px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:var(--tr);
+  border:1px solid transparent;
+  position:relative;
+}
 
-    #send-btn {
-      width: 42px; height: 42px; border-radius: 12px;
-      border: none; background: var(--navy); color: var(--white);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: background .2s, transform .15s, box-shadow .2s;
-      box-shadow: 0 4px 14px rgba(10,22,40,.25);
-    }
+.sess-item:hover{
+  background:var(--card2);
+}
 
-    #send-btn:hover { background: var(--blue); transform: scale(1.05); box-shadow: 0 6px 20px rgba(26,86,219,.35); }
-    #send-btn:active { transform: scale(.95); }
-    #send-btn:disabled { background: var(--sand); cursor: not-allowed; transform: none; box-shadow: none; }
-    #send-btn svg { width: 17px; height: 17px; }
+.sess-item.active{
+  background:var(--card3);
+  border-color:var(--border-hi);
+  box-shadow:var(--shadow-sm);
+}
 
-    .input-footer {
-      font-size: 11px; color: var(--muted);
-      text-align: center; margin-top: 8px;
-      letter-spacing: .2px;
-    }
+.sess-item.active::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:18%;
+  bottom:18%;
+  width:2px;
+  border-radius:0 2px 2px 0;
+  background:var(--accent);
+}
 
-    @media (max-width: 600px) {
-      header { padding: 0 16px; }
-      .container { padding: 0 12px; }
-      .bubble { max-width: 85%; }
-      .empty-state h2 { font-size: 22px; }
-    }
-  </style>
+.sess-dot{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--muted2);
+  flex-shrink:0;
+}
+
+.sess-item.active .sess-dot{
+  background:var(--accent);
+}
+
+.sess-name{
+  flex:1;
+  min-width:0;
+  font-size:12px;
+  font-weight:400;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.sess-time{
+  font-size:10px;
+  color:var(--muted2);
+}
+
+/* =========================================================
+   CHAT PANEL
+========================================================= */
+
+.chat-panel{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.chat-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 22px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background:var(--card);
+}
+
+.chat-bar-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.chat-bar-icon{
+  width:28px;
+  height:28px;
+  border-radius:var(--radius-sm);
+  background:var(--card3);
+  border:1px solid var(--border-hi);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+}
+
+.chat-bar-title{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text2);
+}
+
+.chat-bar-sess{
+  font-size:11px;
+  color:var(--muted);
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:3px 12px;
+}
+
+/* =========================================================
+   CHAT WINDOW
+========================================================= */
+
+#chat-window{
+  flex:1;
+  overflow-y:auto;
+  padding:22px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  background:var(--bg);
+}
+
+#chat-window::-webkit-scrollbar{
+  width:4px;
+}
+
+#chat-window::-webkit-scrollbar-thumb{
+  background:var(--border-hi);
+  border-radius:99px;
+}
+
+/* =========================================================
+   WELCOME
+========================================================= */
+
+.welcome{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  gap:20px;
+  padding:20px;
+}
+
+.welcome-icon{
+  width:54px;
+  height:54px;
+  border-radius:14px;
+  background:var(--card);
+  border:1px solid var(--border-hi);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  box-shadow:var(--shadow-sm);
+}
+
+.welcome-h{
+  font-size:20px;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:-.02em;
+}
+
+.welcome-p{
+  font-size:13px;
+  line-height:1.8;
+  color:var(--muted);
+  max-width:420px;
+}
+
+.notice{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:11px 15px;
+  border-radius:var(--radius-sm);
+  background:var(--card);
+  border:1px solid var(--border-hi);
+  box-shadow:var(--shadow-sm);
+  font-size:12px;
+  line-height:1.65;
+  color:var(--text2);
+  max-width:460px;
+  text-align:left;
+}
+
+.notice-i{
+  font-size:13px;
+  flex-shrink:0;
+  margin-top:1px;
+}
+
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  max-width:560px;
+}
+
+.chip{
+  padding:7px 15px;
+  border-radius:20px;
+  border:1px solid var(--border-hi);
+  background:var(--card);
+  font-size:12px;
+  font-weight:400;
+  color:var(--text2);
+  cursor:pointer;
+  transition:var(--tr);
+}
+
+.chip:hover{
+  background:var(--card2);
+  border-color:var(--border-focus);
+  color:var(--text);
+  transform:translateY(-1px);
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.msg-row{
+  display:flex;
+  gap:10px;
+  animation:up .16s ease both;
+}
+
+.msg-row.user{
+  flex-direction:row-reverse;
+}
+
+@keyframes up{
+  from{
+    opacity:0;
+    transform:translateY(5px)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0)
+  }
+}
+
+.msg-av{
+  width:30px;
+  height:30px;
+  flex-shrink:0;
+  border-radius:var(--radius-sm);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:700;
+  margin-top:2px;
+}
+
+.msg-av.bot{
+  background:var(--card2);
+  border:1px solid var(--border-hi);
+}
+
+.msg-av.user{
+  background:var(--card3);
+  border:1px solid var(--border-hi);
+}
+
+.bubble{
+  max-width:74%;
+  padding:11px 16px;
+  border-radius:var(--radius);
+  font-size:13.5px;
+  line-height:1.78;
+  box-shadow:var(--shadow-sm);
+}
+
+.bubble.bot{
+  background:var(--card);
+  border:1px solid var(--border-hi);
+  border-top-left-radius:3px;
+  color:var(--text2);
+}
+
+.bubble.user{
+  background:var(--card2);
+  border:1px solid var(--border-hi);
+  border-top-right-radius:3px;
+  color:var(--text);
+}
+
+.msg-meta{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:5px;
+}
+
+.msg-sender{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.msg-time{
+  font-size:10px;
+  color:var(--muted2);
+}
+
+.tdots{
+  display:flex;
+  gap:4px;
+  align-items:center;
+  padding:3px 0;
+}
+
+.tdots span{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--muted);
+  animation:bce 1.2s infinite;
+}
+
+.tdots span:nth-child(2){
+  animation-delay:.15s
+}
+
+.tdots span:nth-child(3){
+  animation-delay:.3s
+}
+
+@keyframes bce{
+  0%,80%,100%{
+    transform:translateY(0);
+    opacity:.25
+  }
+  40%{
+    transform:translateY(-6px);
+    opacity:1
+  }
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.input-section{
+  padding:14px 22px 16px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+  background:var(--card);
+}
+
+.input-row{
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:var(--radius);
+  background:var(--bg);
+  border:1px solid var(--border-hi);
+  transition:var(--tr);
+}
+
+.input-row:focus-within{
+  border-color:var(--border-focus);
+  box-shadow:0 0 0 3px rgba(127,29,29,.08);
+}
+
+#user-input{
+  flex:1;
+  border:none;
+  outline:none;
+  background:transparent;
+  resize:none;
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  line-height:1.6;
+  max-height:120px;
+}
+
+#user-input::placeholder{
+  color:var(--muted2);
+}
+
+.send-btn{
+  width:34px;
+  height:34px;
+  flex-shrink:0;
+  border:none;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--accent);
+  color:#fff;
+  transition:var(--tr);
+}
+
+.send-btn:hover{
+  opacity:.9;
+  transform:translateY(-1px);
+}
+
+.send-btn:disabled{
+  opacity:.2;
+  cursor:not-allowed;
+}
+
+.input-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:8px;
+  padding:0 2px;
+}
+
+.input-hint{
+  font-size:11px;
+  color:var(--muted2);
+}
+
+.input-badges{
+  display:flex;
+  gap:12px;
+}
+
+.ibadge{
+  font-size:10px;
+  font-weight:500;
+  color:var(--muted2);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.ibadge-dot{
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:var(--muted);
+}
+
+</style>
 </head>
+
 <body>
 
-<header>
-  <div class="header-brand">
-    <div class="brand-badge">N</div>
-    <div class="brand-text">
-      <h1>T&P Policy Assistant</h1>
-      <p>Netaji Subhas University of Technology · 2025–26</p>
+<div class="page-header">
+
+  <div>
+    <div class="page-title">
+      T&amp;P Chat Support
+    </div>
+
+    <div class="page-sub">
+      AI-powered assistant for placement policies, eligibility &amp; recruitment operations
     </div>
   </div>
+
   <div class="status-pill">
-    <div class="dot"></div>
-    Online
+    <div class="s-dot"></div>
+    System Active · 2026
   </div>
-</header>
 
-<main>
-  <div class="container">
+</div>
 
-    <div class="disclaimer">
-      📋 Answers based on official NSUT Placement Policy 2025–26. For urgent matters, contact
-      <strong>tnpcell@nsitonline.in</strong>.
+<div class="layout">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-head">
+
+      <span class="sidebar-label">
+        Chat History
+      </span>
+
+      <button class="new-btn">
+        + New
+      </button>
+
+    </div>
+
+    <div class="sess-list">
+
+      <div class="sess-group-label">
+        Today
+      </div>
+
+      <div class="sess-item active">
+        <div class="sess-dot"></div>
+        <div class="sess-name">
+          Active Session
+        </div>
+        <span class="sess-time">
+          now
+        </span>
+      </div>
+
+    </div>
+
+  </aside>
+
+  <div class="chat-panel">
+
+    <div class="chat-bar">
+
+      <div class="chat-bar-left">
+
+        <div class="chat-bar-icon">
+          🤖
+        </div>
+
+        <span class="chat-bar-title">
+          Training &amp; Placement AI Assistant
+        </span>
+
+      </div>
+
+      <div class="chat-bar-sess">
+        Active Session
+      </div>
+
     </div>
 
     <div id="chat-window">
-      <div class="empty-state" id="empty-state">
-        <div class="empty-icon">🎓</div>
+
+      <div class="welcome">
+
+        <div class="welcome-icon">
+          🤖
+        </div>
+
         <div>
-          <h2>Ask me anything about<br/><em>Placement Policy 2025–26</em></h2>
-          <p>Eligibility, company categories, offer rules, penalties, dress code — I've got it all.</p>
+
+          <div class="welcome-h">
+            T&amp;P Chat Support
+          </div>
+
+          <div class="welcome-p" style="margin-top:8px">
+            Ask anything about placement policies — CGPA requirements,
+            internship eligibility, dream company rules,
+            offer regulations and more.
+          </div>
+
         </div>
-        <div class="suggestions">
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">What is the CGPA cutoff?</div>
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">Dream vs A++ category?</div>
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">Can I apply after getting placed?</div>
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">What if I reject an offer?</div>
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">How many subjects can I drop?</div>
-          <div class="suggestion-chip" onclick="sendSuggestion(this)">Dress code rules?</div>
+
+        <div class="notice">
+
+          <span class="notice-i">
+            ℹ
+          </span>
+
+          <span>
+            Responses are grounded in
+            <strong>official placement policy documents</strong>.
+            Verify important decisions with the Placement Cell office.
+          </span>
+
         </div>
+
+        <div class="chips">
+
+          <div class="chip">CGPA eligibility criteria</div>
+          <div class="chip">Dream company category rules</div>
+          <div class="chip">Internship guidelines</div>
+          <div class="chip">Placement cycle regulations</div>
+          <div class="chip">Offer rejection penalty</div>
+          <div class="chip">PPO conversion process</div>
+
+        </div>
+
       </div>
+
     </div>
 
-    <div class="input-wrapper">
-      <div class="input-area">
-        <textarea id="user-input" rows="1" placeholder="Ask about placement rules, eligibility, categories…"></textarea>
-        <button id="send-btn" onclick="sendMessage()" aria-label="Send">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-               stroke-linecap="round" stroke-linejoin="round">
+    <div class="input-section">
+
+      <div class="input-row">
+
+        <textarea
+          id="user-input"
+          rows="1"
+          placeholder="Ask about CGPA eligibility, company tiers, internship rules, placement policies…"
+        ></textarea>
+
+        <button class="send-btn">
+
+          <svg width="14" height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
             <line x1="22" y1="2" x2="11" y2="13"/>
             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+
           </svg>
+
         </button>
+
       </div>
-      <div class="input-footer">Powered by LangChain · LangGraph · GPT-4o-mini</div>
+
+      <div class="input-footer">
+
+        <span class="input-hint">
+          Enter to send · Shift+Enter for new line
+        </span>
+
+        <div class="input-badges">
+
+          <span class="ibadge">
+            <span class="ibadge-dot"></span>
+            LangChain
+          </span>
+
+          <span class="ibadge">
+            <span class="ibadge-dot"></span>
+            LangGraph
+          </span>
+
+          <span class="ibadge">
+            <span class="ibadge-dot"></span>
+            GPT-4o-mini
+          </span>
+
+        </div>
+
+      </div>
+
     </div>
 
   </div>
-</main>
+
+</div>
 
 <script>
-  const API_BASE   = 'http://localhost:8000';
-  const SESSION_ID = 'session_' + Math.random().toString(36).slice(2, 9);
 
-  const chatWindow = document.getElementById('chat-window');
-  const input      = document.getElementById('user-input');
-  const sendBtn    = document.getElementById('send-btn');
+const API_BASE = "http://localhost:8000";
 
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-  });
+const SESSION_ID =
+  "session_" + Math.random().toString(36).slice(2, 9);
 
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
+const chatWindow = document.getElementById("chat-window");
+const input = document.getElementById("user-input");
+const sendBtn = document.querySelector(".send-btn");
 
-  function scrollBottom() {
-    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-  }
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height =
+    Math.min(input.scrollHeight, 120) + "px";
+});
 
-  function hideEmpty() {
-    const el = document.getElementById('empty-state');
-    if (el) {
-      el.style.transition = 'opacity .2s';
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 200);
-    }
-  }
-
-  function addMessage(role, text) {
-    hideEmpty();
-    const row    = document.createElement('div');
-    row.className = `message-row ${role}`;
-
-    const avatar = document.createElement('div');
-    avatar.className = `avatar ${role}`;
-    avatar.textContent = role === 'bot' ? '🎓' : '👤';
-
-    const bubble = document.createElement('div');
-    bubble.className = `bubble ${role}`;
-    bubble.innerHTML  = formatText(text);
-
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatWindow.appendChild(row);
-    scrollBottom();
-    return bubble;
-  }
-
-  function addTyping() {
-    hideEmpty();
-    const row    = document.createElement('div');
-    row.className = 'message-row bot';
-    row.id = 'typing-row';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar bot';
-    avatar.textContent = '🎓';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble bot';
-    bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatWindow.appendChild(row);
-    scrollBottom();
-  }
-
-  function removeTyping() {
-    const t = document.getElementById('typing-row');
-    if (t) t.remove();
-  }
-
-  function formatText(text) {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>[\s\S]*?<\/li>)/m, '<ul>$1</ul>')
-      .replace(/\n/g, '<br/>');
-  }
-
-  async function sendMessage() {
-    const text = input.value.trim();
-    if (!text) return;
-
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-
-    addMessage('user', text);
-    addTyping();
-
-    try {
-      const res = await fetch(`${API_BASE}/chat`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ session_id: SESSION_ID, message: text }),
-      });
-
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
-
-      removeTyping();
-      addMessage('bot', data.answer);
-
-    } catch (err) {
-      removeTyping();
-      addMessage('bot', `⚠️ Could not reach the server. Make sure the backend is running at <strong>${API_BASE}</strong>.<br/><br/>Error: ${err.message}`);
-    } finally {
-      sendBtn.disabled = false;
-      input.focus();
-    }
-  }
-
-  function sendSuggestion(el) {
-    input.value = el.textContent;
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
     sendMessage();
   }
+});
+
+function scrollBottom() {
+  chatWindow.scrollTo({
+    top: chatWindow.scrollHeight,
+    behavior: "smooth",
+  });
+}
+
+function hideWelcome() {
+  const welcome = document.querySelector(".welcome");
+
+  if (welcome) {
+    welcome.style.transition = "opacity .2s";
+    welcome.style.opacity = "0";
+
+    setTimeout(() => {
+      welcome.remove();
+    }, 200);
+  }
+}
+
+function formatText(text) {
+
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^[-•] (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*?<\/li>)/m, "<ul>$1</ul>")
+    .replace(/\n/g, "<br>");
+}
+
+function addMessage(role, text) {
+
+  hideWelcome();
+
+  const row = document.createElement("div");
+  row.className = `msg-row ${role}`;
+
+  const avatar = document.createElement("div");
+  avatar.className = `msg-av ${role}`;
+
+  avatar.innerHTML =
+    role === "bot" ? "🤖" : "You";
+
+  const bubble = document.createElement("div");
+  bubble.className = `bubble ${role}`;
+
+  bubble.innerHTML = `
+    <div class="msg-meta">
+      <span class="msg-sender">
+        ${role === "bot" ? "Assistant" : "You"}
+      </span>
+
+      <span class="msg-time">
+        ${new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+    </div>
+
+    <div class="msg-text">
+      ${formatText(text)}
+    </div>
+  `;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+
+  chatWindow.appendChild(row);
+
+  scrollBottom();
+}
+
+function addTyping() {
+
+  hideWelcome();
+
+  const row = document.createElement("div");
+
+  row.className = "msg-row";
+  row.id = "typing-row";
+
+  row.innerHTML = `
+    <div class="msg-av bot">
+      🤖
+    </div>
+
+    <div class="bubble bot">
+
+      <div class="msg-meta">
+        <span class="msg-sender">
+          Assistant
+        </span>
+      </div>
+
+      <div class="tdots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+    </div>
+  `;
+
+  chatWindow.appendChild(row);
+
+  scrollBottom();
+}
+
+function removeTyping() {
+  const t = document.getElementById("typing-row");
+
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  input.value = "";
+  input.style.height = "auto";
+
+  sendBtn.disabled = true;
+
+  addMessage("user", text);
+
+  addTyping();
+
+  try {
+
+    const response = await fetch(
+      `${API_BASE}/chat`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          session_id: SESSION_ID,
+          message: text,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Server Error: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    removeTyping();
+
+    addMessage(
+      "bot",
+      data.answer || "No response received."
+    );
+
+  } catch (err) {
+
+    removeTyping();
+
+    addMessage(
+      "bot",
+      `⚠️ Backend connection failed.<br><br>
+      Make sure your FastAPI server is running.<br><br>
+      Error: ${err.message}`
+    );
+
+  } finally {
+
+    sendBtn.disabled = false;
+
+    input.focus();
+  }
+}
+
+document.querySelectorAll(".chip").forEach((chip) => {
+
+  chip.addEventListener("click", () => {
+
+    input.value = chip.textContent.trim();
+
+    sendMessage();
+  });
+
+});
+
+document.querySelector(".new-btn")
+.addEventListener("click", () => {
+
+  location.reload();
+});
+
+sendBtn.addEventListener(
+  "click",
+  sendMessage
+);
+
 </script>
 
 </body>
