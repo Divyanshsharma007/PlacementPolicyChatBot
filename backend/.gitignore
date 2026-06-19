@@ -1,56 +1,39 @@
-# ── Python ─────────────────────────────
+# Python
+venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.pyc.*
-*.py,cover
 
-# ── Virtual Environment ───────────────
-venv/
-env/
-ENV/
-
-# ── Environment Variables ─────────────
+# Environment variables
 .env
-.env.*
 
-# ── Logs ─────────────────────────────
+# FAISS / Vector DB
+faiss_index/
+chroma_db/
+
+# Logs
 *.log
 
-# ── Cache / Temp ─────────────────────
-.cache/
-*.tmp
-*.temp
-
-# ── OS Files ─────────────────────────
-.DS_Store
-Thumbs.db
-
-# ── VS Code ──────────────────────────
-.vscode/
-
-# ── Node (if used later) ─────────────
-node_modules/
-
-# ── Build / Dist ─────────────────────
-build/
-dist/
-
-# ── Jupyter / misc ───────────────────
-.ipynb_checkpoints/
-
-# ── FAISS / vector DB (optional)
-*.faiss
-*.pkl
-
-# ── Python packaging ─────────────────
-*.egg-info/
-.eggs/
-
-# ── Coverage reports ─────────────────
+# Coverage reports
 .coverage
 htmlcov/
 
-# ── Mac / Linux hidden files ─────────
+# VS Code
+.vscode/
+
+# Mac / Linux hidden files
+.DS_Store
 *.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Ollama generated files (if any local cache)
+models/
