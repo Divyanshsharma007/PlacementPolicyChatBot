@@ -33,10 +33,14 @@ from langchain_ollama import OllamaLLM
 import time
 from langchain_core.documents import Document
 import pymupdf4llm
+from langchain_google_genai import ChatGoogleGenerativeAI
+from dotenv import load_dotenv
 # ──────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ──────────────────────────────────────────────────────────────────────────────
 PDF_PATH = os.environ.get("PDF_PATH", "Placement_Policy.pdf")
+
+load_dotenv()
 
 FAISS_INDEX_PATH = "faiss_index"
 # ──────────────────────────────────────────────────────────────────────────────
@@ -349,12 +353,19 @@ retriever = build_retriever(PDF_PATH)
 # ──────────────────────────────────────────────────────────────────────────────
 # LLM
 # ──────────────────────────────────────────────────────────────────────────────
-llm = OllamaLLM(
-    model="qwen2.5:3b",
-    temperature=0,
-    top_p=0.01,
-    num_predict=200
+#llm = OllamaLLM(
+    #model="qwen2.5:3b",
+    #temperature=0,
+    #top_p=0.01,
+    #num_predict=200
     #num_predict=80
+#)
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    temperature=0
 )
 # ──────────────────────────────────────────────────────────────────────────────
 # Prompt
