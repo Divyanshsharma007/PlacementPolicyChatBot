@@ -321,19 +321,10 @@ Recommendations, concessions and benefits are provided solely at the discretion 
         )
 
     else:
-
-        print("⚡ Building FAISS index...")
-
-        vectorstore = FAISS.from_documents(
-            chunks,
-            embeddings
-        )
-
-        vectorstore.save_local(
-            FAISS_INDEX_PATH
-        )
-
-        print("✅ FAISS index saved.")
+        
+        raise Exception(
+        "FAISS index missing. Build locally first."
+    )
 
     # Retriever
     retriever = vectorstore.as_retriever(
@@ -570,21 +561,7 @@ def build_graph():
     return graph.compile()
 
 chat_graph = build_graph()
-@app.on_event("startup")
-async def warmup():
-    print("⏳ Warming up model...")
 
-    try:
-        await asyncio.to_thread(
-            llm.invoke,
-            "Hello"
-        )
-        print("✅ Model warmed up and ready.")
-
-    except Exception as e:
-        # Don't crash startup if warmup fails — the model will just load
-        # lazily on the first real request instead.
-        print("⚠️ Warmup failed:", e)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # API Schemas
@@ -609,7 +586,7 @@ def serve_ui():
 def health():
     return {
         "status": "ok",
-        "model": "phi3"
+        "model": "gemini-2.5-flash"
     }
 # Chat Endpoint
 @app.post("/chat", response_model=ChatResponse)
