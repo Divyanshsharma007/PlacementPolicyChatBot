@@ -305,7 +305,7 @@ Recommendations, concessions and benefits are provided solely at the discretion 
 
     # Embedding model
     embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5",
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
         encode_kwargs={"normalize_embeddings": True}
     )
 
@@ -321,10 +321,16 @@ Recommendations, concessions and benefits are provided solely at the discretion 
         )
 
     else:
-        
+
         raise Exception(
         "FAISS index missing. Build locally first."
-    )
+        )
+
+        vectorstore.save_local(
+            FAISS_INDEX_PATH
+        )
+
+        print("✅ FAISS index saved.")
 
     # Retriever
     retriever = vectorstore.as_retriever(
@@ -338,7 +344,15 @@ Recommendations, concessions and benefits are provided solely at the discretion 
 
     return retriever
 # Initialize retriever
-retriever = build_retriever(PDF_PATH)
+retriever = None
+
+def get_retriever():
+    global retriever
+
+    if retriever is None:
+        retriever = build_retriever(PDF_PATH)
+
+    return retriever
 
 
 
@@ -494,7 +508,7 @@ def retrieve_context(state: ChatState):
         non-tech roles
         core roles
         """
-    docs = retriever.invoke(query)
+    docs = get_retriever().invoke(query)
 
     print(f"🔍 Retrieval Time: {time.time() - start:.2f}s")
 
