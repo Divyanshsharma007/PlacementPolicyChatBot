@@ -29,7 +29,8 @@ from langchain_core.messages import AIMessage
 from langgraph.graph import END, StateGraph
 # Modern LangChain Imports
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import OllamaLLM
+#from langchain_google_genai import GoogleGenerativeAIEmbeddings
+#from langchain_ollama import OllamaLLM
 import time
 from langchain_core.documents import Document
 import pymupdf4llm

@@ -10,7 +10,7 @@ __pycache__/
 .env
 
 # FAISS / Vector DB
-faiss_index/
+#faiss_index/
 chroma_db/
 
 # Logs
@@ -35,5 +35,9 @@ build/
 dist/
 *.egg-info/
 
-# Ollama generated files (if any local cache)
+# Ollama generated files
 models/
+
+# Added
+#*.faiss
+#*.pkl
